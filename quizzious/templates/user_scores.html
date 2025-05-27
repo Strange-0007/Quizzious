@@ -1,0 +1,723 @@
+{% extends "base.html" %}
+
+{% block title %}Your Scores{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold">Your Assessment History</h1>
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Subject Filter Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Filter by Subject</h5>
+            <select id="subjectSelector" class="form-select">
+                <option value="all">All Subjects</option>
+                {% for subject in subjects %}
+                    <option value="{{ subject[0] }}">{{ subject[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="row g-4 mb-4">
+        <!-- Performance Timeline -->
+        <div class="col-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Performance Timeline</h5>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject vs Chapter Performance -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Subject Performance</h5>
+                    <div class="chart-container">
+                        <canvas id="subjectPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Chapter Performance</h5>
+                    <div class="chart-container">
+                        <canvas id="chapterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Distribution -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Score Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="scoreDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best vs Worst -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Performance Range</h5>
+                    <div class="chart-container">
+                        <canvas id="minMaxChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts and Tables -->
+    <div class="row mt-4">
+        <!-- Subject Performance Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Subject Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="subjectChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Attempts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Recent Quiz Attempts</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Quiz</th>
+                                    <th>Subject</th>
+                                    <th class="text-end">Score</th>
+                                    <th class="text-end">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentAttemptsTable">
+                                <!-- Will be populated via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Results Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detailed Results</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Chapter</th>
+                            <th>Quiz</th>
+                            <th class="text-end">Score</th>
+                            <th class="text-end">Percentage</th>
+                            <th class="text-end">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for score in scores %}
+                        <tr class="subject-row" data-subject="{{ score[7] }}">
+                            <td>{{ score[5] }}</td>
+                            <td>{{ score[4] }}</td>
+                            <td>{{ score[0] }}</td>
+                            <td class="text-end">{{ score[1] }}/{{ score[2] }}</td>
+                            <td class="text-end">{{ score[6] }}%</td>
+                            <td class="text-end">{{ score[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const colors = [
+        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+        '#858796', '#5a5c69', '#3a3b45', '#2e59a9', '#17a673'
+    ];
+
+    // Store original data for filtering
+    let originalData = {
+        timeline: null,
+        subjects: null,
+        chapters: null,
+        scores: null
+    };
+
+    // Add the subjectChart to your charts object
+    let charts = {
+        timeline: null,
+        subjectPie: null,
+        chapter: null,
+        distribution: null,
+        minMax: null,
+        subjectBar: null  // Add this line to track the bottom subject bar chart
+    };
+
+    try {
+        // Fetch data from three endpoints
+        const [performanceStats, dashboardStats, scoresData] = await Promise.all([
+            fetch('/api/user/performance_stats').then(res => res.json()),
+            fetch('/api/user/dashboard_stats').then(res => res.json()),
+            fetch('/api/user/scores').then(res => res.json())
+        ]);
+        
+        // Store original data with correct references
+        originalData = {
+            timeline: performanceStats.timeline_stats,
+            subjects: performanceStats.subject_stats,
+            chapters: performanceStats.chapter_stats,
+            scores: scoresData  // Scores from /api/user/scores
+        };
+
+        // Initialize charts with fetched data
+        initTimelineChart(originalData.timeline);
+        initSubjectChart(originalData.subjects);
+        initChapterChart(originalData.chapters);
+        initDistributionChart(originalData.scores); // Pass scoresData here
+        initMinMaxChart(originalData.subjects);
+        initSubjectBarChart(originalData.subjects);
+        
+        // Populate recent attempts table from dashboardStats
+        const recentAttemptsTable = document.getElementById('recentAttemptsTable');
+        if (dashboardStats.recent_attempts && dashboardStats.recent_attempts.length > 0) {
+            recentAttemptsTable.innerHTML = dashboardStats.recent_attempts.map(attempt => `
+                <tr>
+                    <td>${attempt.quiz_name}</td>
+                    <td>${attempt.subject_name}</td>
+                    <td class="text-end">${attempt.percentage}%</td>
+                    <td class="text-end">${attempt.date}</td>
+                </tr>
+            `).join('');
+        } else {
+            recentAttemptsTable.innerHTML = 
+                '<tr><td colspan="4" class="text-center">No quiz attempts yet</td></tr>';
+        }
+
+        // Subject filter handler
+        document.getElementById('subjectSelector').addEventListener('change', (e) => {
+            const subjectId = e.target.value;
+            filterData(subjectId);
+        });
+
+    } catch (error) {
+        console.error('Failed to initialize charts:', error);
+        showErrorMessages();
+        document.getElementById('subjectChart').parentNode.innerHTML = 
+            '<div class="alert alert-danger">Error loading performance data.</div>';
+        document.getElementById('recentAttemptsTable').innerHTML = 
+            '<tr><td colspan="4" class="text-center">Error loading data</td></tr>';
+    }
+
+    // Update the filterData function:
+    function filterData(subjectId) {
+        // Convert subjectId to string for consistent comparisons
+        subjectId = String(subjectId);
+        
+        if (subjectId === 'all') {
+            updateCharts(originalData.timeline, originalData.subjects, originalData.chapters, originalData.scores);
+            filterTable('all');
+            return;
+        }
+
+        // Filter timeline data
+        const filteredTimeline = Array.isArray(originalData.timeline) ? 
+            originalData.timeline.filter(item => String(item.subject_id) === subjectId) : [];
+
+        // Filter subject data
+        const filteredSubjects = Array.isArray(originalData.subjects) ?
+            originalData.subjects.filter(subject => String(subject.id) === subjectId) : [];
+
+        // Filter chapter data
+        const filteredChapters = Array.isArray(originalData.chapters) ?
+            originalData.chapters.filter(chapter => String(chapter.subject_id) === subjectId) : [];
+
+        // Filter scores data
+        let filteredScores = [];
+        
+        try {
+            if (originalData.scores && originalData.scores.length > 0) {
+                if (Array.isArray(originalData.scores[0])) {
+                    // If scores is array of arrays (from template)
+                    filteredScores = originalData.scores.filter(score => 
+                        String(score[7]) === subjectId
+                    );
+                } else {
+                    // If scores is array of objects (from API)
+                    filteredScores = originalData.scores.filter(score => 
+                        String(score.subject_id) === subjectId
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Error filtering scores:', error);
+        }
+
+        // Update charts with filtered data
+        updateCharts(filteredTimeline, filteredSubjects, filteredChapters, filteredScores);
+        
+        // Filter table
+        filterTable(subjectId);
+    }
+
+    // Update the updateCharts function to include the subjectBar chart
+    function updateCharts(timelineData, subjectData, chapterData, scoresData) {
+        // First clear all chart containers to ensure clean state
+        document.querySelectorAll('.chart-container').forEach(container => {
+            const canvasId = container.querySelector('canvas')?.id;
+            if (canvasId) {
+                // Preserve the canvas element but clear its contents
+                container.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+            }
+        });
+        
+        // Destroy existing charts properly
+        Object.keys(charts).forEach(key => {
+            if (charts[key]) {
+                charts[key].destroy();
+                charts[key] = null;
+            }
+        });
+
+        // Reinitialize charts with filtered data
+        try {
+            if (timelineData && timelineData.length > 0) {
+                initTimelineChart(timelineData);
+            } else {
+                showNoData(document.getElementById('timelineChart'), 'No timeline data available for selected subject');
+            }
+            
+            if (subjectData && subjectData.length > 0) {
+                initSubjectChart(subjectData);
+                initMinMaxChart(subjectData);
+                // Add this line to update the subject bar chart
+                initSubjectBarChart(subjectData);
+            } else {
+                showNoData(document.getElementById('subjectPieChart'), 'No subject data available for selected subject');
+                showNoData(document.getElementById('minMaxChart'), 'No performance data available for selected subject');
+                showNoData(document.getElementById('subjectChart'), 'No subject data available for selected subject');
+            }
+            
+            if (chapterData && chapterData.length > 0) {
+                initChapterChart(chapterData);
+            } else {
+                showNoData(document.getElementById('chapterChart'), 'No chapter data available for selected subject');
+            }
+            
+            if (scoresData && scoresData.length > 0) {
+                initDistributionChart(scoresData);
+            } else {
+                showNoData(document.getElementById('scoreDistributionChart'), 'No distribution data available for selected subject');
+            }
+        } catch (error) {
+            console.error('Error updating charts:', error);
+            showErrorMessages();
+        }
+    }
+
+    function initTimelineChart(data) {
+        const ctx = document.getElementById('timelineChart').getContext('2d');
+        if (!data || !data.length) return showNoData(ctx.canvas, 'No timeline data available for selected subject');
+
+        try {
+            // Get unique quiz names safely
+            const quizNames = [...new Set(data
+                .filter(item => item && item.quiz_name)
+                .map(item => item.quiz_name))];
+            
+            const datasets = quizNames.map((quiz, i) => ({
+                label: quiz,
+                data: data
+                    .filter(d => d && d.quiz_name === quiz && d.score !== undefined)
+                    .map(d => d.score),
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '20',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                fill: true
+            }));
+
+            // Only create chart if we have valid datasets with data
+            if (datasets.some(d => d.data && d.data.length > 0)) {
+                charts.timeline = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [...new Set(data
+                            .filter(d => d && d.date)
+                            .map(d => d.date))].sort(),
+                        datasets: datasets
+                    },
+                    options: getChartOptions('Quiz Performance Over Time', {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    })
+                });
+            } else {
+                return showNoData(ctx.canvas, 'No timeline data available for selected subject');
+            }
+        } catch (error) {
+            console.error('Error creating timeline chart:', error);
+            return showNoData(ctx.canvas, 'Error creating timeline chart');
+        }
+    }
+
+    function initSubjectChart(data) {
+        const ctx = document.getElementById('subjectPieChart').getContext('2d');
+        if (!data || !data.length) return showNoData(ctx.canvas, 'No subject data available for selected subject');
+
+        charts.subjectPie = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{
+                    data: data.map(d => d.avg_score),
+                    backgroundColor: colors,
+                    borderWidth: 1
+                }]
+            },
+            options: getChartOptions('Average Performance by Subject', {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.label}: ${ctx.raw}% (${data[ctx.dataIndex].attempts} attempts)`
+                        }
+                    }
+                }
+            })
+        });
+    }
+
+    function initChapterChart(data) {
+        const ctx = document.getElementById('chapterChart').getContext('2d');
+        if (!data || !data.length) return showNoData(ctx.canvas, 'No chapter data available for selected subject');
+
+        charts.chapter = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [
+                    {
+                        label: 'Average Score',
+                        data: data.map(d => d.avg_score),
+                        backgroundColor: colors[0],
+                        yAxisID: 'y',
+                        barPercentage: 0.7
+                    },
+                    {
+                        label: 'Attempts',
+                        data: data.map(d => d.attempts),
+                        type: 'line',
+                        borderColor: colors[1],
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: getChartOptions('Chapter Performance', {
+                scales: {
+                    y: { 
+                        max: 100, 
+                        title: { 
+                            display: true,
+                            text: 'Score (%)' 
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    y1: { 
+                        position: 'right', 
+                        title: { 
+                            display: true,
+                            text: 'Attempts' 
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            })
+        });
+    }
+
+    function initDistributionChart(scores) {
+        const ctx = document.getElementById('scoreDistributionChart').getContext('2d');
+        if (!scores || !scores.length) return showNoData(ctx.canvas, 'No distribution data available for selected subject');
+
+        const ranges = Array(5).fill(0);
+        
+        try {
+            if (Array.isArray(scores[0])) {
+                scores.forEach(s => {
+                    const percent = parseFloat(s[6]);
+                    if (!isNaN(percent)) {
+                        const rangeIndex = Math.floor(percent/20);
+                        if (rangeIndex >= 0 && rangeIndex < 5) {
+                            ranges[rangeIndex]++;
+                        }
+                    }
+                });
+            } else {
+                scores.forEach(s => {
+                    // Try both possible formats for accessing percentage data
+                    const percent = parseFloat(s.percentage || s.score || 0);
+                    if (!isNaN(percent)) {
+                        const rangeIndex = Math.floor(percent/20);
+                        if (rangeIndex >= 0 && rangeIndex < 5) {
+                            ranges[rangeIndex]++;
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error processing score distribution:', error);
+            return showNoData(ctx.canvas, 'Error processing score data');
+        }
+        
+        charts.distribution = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
+                datasets: [{
+                    label: 'Number of Assessments',
+                    data: ranges,
+                    backgroundColor: colors[2],
+                    borderWidth: 1
+                }]
+            },
+            options: getChartOptions('Score Distribution', {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            })
+        });
+    }
+
+    function initMinMaxChart(data) {
+        const ctx = document.getElementById('minMaxChart').getContext('2d');
+        if (!data || !data.length) return showNoData(ctx.canvas, 'No performance data available for selected subject');
+
+        charts.minMax = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [
+                    { 
+                        label: 'Best', 
+                        data: data.map(d => d.best_score), 
+                        backgroundColor: colors[1],
+                        borderWidth: 1
+                    },
+                    { 
+                        label: 'Average', 
+                        data: data.map(d => d.avg_score), 
+                        backgroundColor: colors[0],
+                        borderWidth: 1
+                    },
+                    { 
+                        label: 'Worst', 
+                        data: data.map(d => d.worst_score), 
+                        backgroundColor: colors[4],
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: getChartOptions('Performance Range', { 
+                scales: { 
+                    y: { 
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    } 
+                } 
+            })
+        });
+    }
+
+    // Add this function to initialize the subject bar chart with filtered data
+    function initSubjectBarChart(data) {
+        const ctx = document.getElementById('subjectChart').getContext('2d');
+        if (!data || !data.length) return showNoData(ctx.canvas, 'No subject data available for selected subject');
+
+        charts.subjectBar = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.name),
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: data.map(item => item.avg_score),
+                    backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Score (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Subjects'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    function filterTable(subjectId) {
+        document.querySelectorAll('.subject-row').forEach(row => {
+            row.style.display = (subjectId === 'all' || row.dataset.subject == subjectId) ? '' : 'none';
+        });
+    }
+
+    function getChartOptions(title = '', extras = {}) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { 
+                    display: true, 
+                    text: title, 
+                    padding: 10,
+                    font: {
+                        size: 14
+                    }
+                },
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 20
+                    }
+                }
+            },
+            ...extras
+        };
+    }
+
+    function showNoData(canvas, message) {
+        canvas.parentNode.innerHTML = `<div class="alert alert-info">${message}</div>`;
+    }
+
+    function showErrorMessages() {
+        document.querySelectorAll('.chart-container').forEach(container => {
+            container.innerHTML = `<div class="alert alert-danger">Error loading chart data</div>`;
+        });
+    }
+
+    // Handle window resize properly
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.update(); // Don't assign to resize property
+            });
+        }, 200);
+    });
+});
+</script>
+
+<style>
+.chart-container {
+    position: relative;
+    height: 300px;
+    min-height: 300px;
+    margin-bottom: 20px;
+}
+
+.card-body {
+    padding-bottom: 0;
+}
+
+.card {
+    border: none;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js is already loaded in the main script, so this is redundant -->
+{% endblock %}

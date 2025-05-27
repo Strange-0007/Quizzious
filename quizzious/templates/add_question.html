@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Add Question Card -->
+    <div class="card shadow-lg mb-5">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">Add New Question</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('question_add', quiz_id=quiz_id, quiz_subject=quiz_subject, quiz_chapter=quiz_chapter) }}" class="needs-validation" novalidate>
+                <input type="hidden" name="quiz_id" value="{{ quiz_id }}">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Subject:</strong> {{ quiz_subject }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Chapter:</strong> {{ quiz_chapter }}</p>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="question_statement" class="form-label">Question Statement</label>
+                    <textarea class="form-control" id="question_statement" name="question_statement" 
+                              rows="3" required style="resize: vertical;"></textarea>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    {% for option in range(1,5) %}
+                    <div class="col-md-6">
+                        <label for="option{{ option }}" class="form-label">Option {{ option }}</label>
+                        <input type="text" class="form-control" id="option{{ option }}" 
+                               name="option{{ option }}" {{ 'required' if option <= 2 else '' }}>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="correct_option" class="form-label">Correct Option</label>
+                    <select class="form-select" id="correct_option" name="correct_option" required>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                        <option value="4">Option 4</option>
+                    </select>
+                </div>
+
+                <!-- These need to be passed in the form submission -->
+                <input type="hidden" name="quiz_id" value="{{ quiz_id }}">
+                <input type="hidden" name="quiz_subject" value="{{ quiz_subject }}">
+                <input type="hidden" name="quiz_chapter" value="{{ quiz_chapter }}">
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Add Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search and Existing Questions -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h3 class="h5 mb-0">Existing Questions</h3>
+        </div>
+        <div class="card-body">
+            <!-- Search Form -->
+            <form method="GET" action="{{ url_for('question_add') }}" class="mb-4">
+                <div class="row g-3">
+                    <input type="hidden" name="quiz_id" value="{{ quiz_id }}">
+                    <input type="hidden" name="quiz_subject" value="{{ quiz_subject }}">
+                    <input type="hidden" name="quiz_chapter" value="{{ quiz_chapter }}">
+                    
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" name="search_query" 
+                               placeholder="Search questions..." value="{{ search_query|default('') }}">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="bi bi-search me-2"></i>Search
+                            </button>
+                            {% if search_query %}
+                            <a href="{{ url_for('question_add', quiz_id=quiz_id, quiz_subject=quiz_subject, quiz_chapter=quiz_chapter) }}" 
+                               class="btn btn-outline-danger">
+                                Clear
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Questions Table -->
+            {% if questions and questions|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Question</th>
+                            <th>Options</th>
+                            <th>Correct Answer</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in questions %}
+                        <tr>
+                            <td class="text-truncate" style="max-width: 300px;">{{ question[2] }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for opt in question[3:7] %}
+                                    <li class="text-truncate" style="max-width: 200px;">
+                                        Option {{ loop.index }}: {{ opt if opt else '-' }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>Option {{ question[7] }}</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="/admin/edit-question/{{ question[0] }}" 
+                                       class="btn btn-warning btn-sm" 
+                                       title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="/admin/delete-question/{{ question[0] }}" method="POST">
+                                        <button type="submit" 
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Are you sure you want to delete this question?');"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-0">
+                No questions found for this quiz.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Quiz System - Quiz-zious</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fs-3 fw-bold" href="#">
+                <i class="bi bi-patch-question me-2"></i>Quiz-zious
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="ms-auto d-flex gap-3">
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light">Create Account</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-light">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-primary text-white py-5">
+        <div class="container text-center py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Online Quiz System</h1>
+                    <p class="lead mb-4 fs-5">Test your knowledge with our intelligent assessment platform</p>
+                    <p class="lead mb-4 fs-5">Are you Quiz curious ? (Quiz-zious) !!</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4">
+                            <i class="bi bi-rocket me-2"></i>Get Started
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <main class="container my-5 py-5">
+        <h2 class="text-center mb-5 fw-bold display-5">Why Choose QuizPro?</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 hover-zoom">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                            <i class="bi bi-clipboard2-pulse fs-3 text-primary"></i>
+                        </div>
+                        <h3 class="card-title mb-3">Smart Assessment</h3>
+                        <p class="card-text text-muted">Adaptive quizzes with real-time feedback and personalized learning paths</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 hover-zoom">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                            <i class="bi bi-bar-chart-line fs-3 text-primary"></i>
+                        </div>
+                        <h3 class="card-title mb-3">Advanced Analytics</h3>
+                        <p class="card-text text-muted">Detailed performance reports with competency mapping and progress tracking</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 hover-zoom">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3 mb-3 mx-auto" style="width: 80px; height: 80px;">
+                            <i class="bi bi-mortarboard fs-3 text-primary"></i>
+                        </div>
+                        <h3 class="card-title mb-3">Expert Content</h3>
+                        <p class="card-text text-muted">Curated by industry professionals and academic experts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Enhanced Footer Section -->
+    <footer class="mt-auto bg-dark text-white py-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- About Column -->
+                <div class="col-md-4 col-lg-3">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-patch-question me-2"></i>Quiz-zious
+                    </h5>
+                    <p class="text-white-50 mb-3">Empowering learners through innovative assessment technology since 2023. Our platform helps students test their knowledge and improve their skills.</p>
+                    
+                </div>
+                
+                <!-- Quick Links Column -->
+                <div class="col-md-4 col-lg-3">
+                    <h5 class="fw-bold mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-chevron-right text-primary me-2 small"></i>Home
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-chevron-right text-primary me-2 small"></i>About Us
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-chevron-right text-primary me-2 small"></i>FAQ
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-chevron-right text-primary me-2 small"></i>Privacy Policy
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-chevron-right text-primary me-2 small"></i>Terms of Service
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Resources Column -->
+                <div class="col-md-4 col-lg-3">
+                    <h5 class="fw-bold mb-3">Resources</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-journal-text text-primary me-2"></i>Study Guides
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-mortarboard text-primary me-2"></i>Learning Paths
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-book text-primary me-2"></i>Subject Catalogs
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-info-circle text-primary me-2"></i>Help Center
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center">
+                                <i class="bi bi-people text-primary me-2"></i>Community Forum
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Newsletter Column -->
+                <div class="col-md-12 col-lg-3 mt-md-4 mt-lg-0">
+                    
+                    <h5 class="fw-bold mb-3 mt-4">Connect With Us</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    </div>
+                    <br>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-geo-alt text-primary me-2"></i>
+                        <span class="text-white-50">123 Education Ave, Knowledge City</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-envelope text-primary me-2"></i>
+                        <span class="text-white-50">contact@quizzious.com</span>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4 border-secondary">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="text-white-50 mb-0">&copy; 2025 Quiz-zious. All rights reserved</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="d-inline-flex gap-3">
+                        <a href="#" class="text-decoration-none text-white-50 small">Privacy</a>
+                        <span class="text-secondary">|</span>
+                        <a href="#" class="text-decoration-none text-white-50 small">Terms</a>
+                        <span class="text-secondary">|</span>
+                        <a href="#" class="text-decoration-none text-white-50 small">Cookies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

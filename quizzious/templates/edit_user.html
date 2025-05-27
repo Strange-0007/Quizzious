@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h4 mb-0">Edit User</h2>
+                        <a href="/admin/manage-users" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Users
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    
+
+                    <form method="POST" action="/admin/edit-user/{{ user[0] }}" class="needs-validation" novalidate>
+                        <div class="row g-3">
+                            <!-- Username -->
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" 
+                                       name="username" value="{{ user[1] }}" required>
+                            </div>
+
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full_name" 
+                                       name="full_name" value="{{ user[2] }}" required>
+                            </div>
+
+                            <!-- Qualification -->
+                            <div class="col-12">
+                                <label for="qualification" class="form-label">Qualification</label>
+                                <input type="text" class="form-control" id="qualification" 
+                                       name="qualification" value="{{ user[3] }}" required>
+                            </div>
+
+                            <!-- Role -->
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role" disabled>
+                                    <option value="admin" {% if user[4] == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="user" {% if user[4] == 'user' %}selected{% endif %}>User</option>
+                                </select>
+                            </div>
+
+                            <!-- Password Update -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" 
+                                           id="update_password" name="update_password">
+                                    <label class="form-check-label" for="update_password">
+                                        Update Password
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="col-12" id="password_field" style="display: none;">
+                                <label for="password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" 
+                                       id="password" name="password">
+                                <div class="form-text">Leave blank to keep current password</div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12 d-flex justify-content-between mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Save Changes
+                                </button>
+                                <a href="/admin/manage-users" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/edit_user.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/edit_user.js') }}"></script>
+{% endblock %}

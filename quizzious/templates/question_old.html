@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Add New Question</h2>
+        <a href="/admin-dashboard" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                <i class="bi {% if category == 'success' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Add Question Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Question Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/question" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="quiz_id" class="form-label">Select Quiz</label>
+                            <select class="form-select" id="quiz_id" name="quiz_id" required>
+                                <option value="">Choose a quiz...</option>
+                                {% for quiz in quizzes %}
+                                    <option value="{{ quiz[0] }}">{{ quiz[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="question_statement" class="form-label">Question Statement</label>
+                            <textarea class="form-control" id="question_statement" name="question_statement" 
+                                    rows="3" required style="resize: vertical;"></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            {% for option in range(1,5) %}
+                            <div class="col-md-6">
+                                <label for="option{{ option }}" class="form-label">
+                                    Option {{ option }}{% if option <= 2 %}*{% endif %}
+                                </label>
+                                <input type="text" class="form-control" id="option{{ option }}" 
+                                       name="option{{ option }}" {{ 'required' if option <= 2 else '' }}>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="correct_option" class="form-label">Correct Answer</label>
+                            <select class="form-select" id="correct_option" name="correct_option" required>
+                                {% for option in range(1,5) %}
+                                <option value="{{ option }}">Option {{ option }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Add Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Quizzes -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Existing Quizzes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Quiz Name</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quiz in quizzes %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="fw-semibold">{{ quiz[1] }}</td>
+                                    <td>{{ quiz[3] }}</td>
+                                    <td>{{ quiz[4] // 60 }}h {{ quiz[4] % 60 }}m</td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="/admin/edit-quiz/{{ quiz[0] }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteQuizModal{{ quiz[0] }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Delete Quiz Modal -->
+                                <div class="modal fade" id="deleteQuizModal{{ quiz[0] }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete "{{ quiz[1] }}"?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="/admin/delete-quiz/{{ quiz[0] }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

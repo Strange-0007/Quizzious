@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Student Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Flash Messages -->
+    
+
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold mb-1">Student Portal</h1>
+            <p class="lead text-muted">Welcome back, {{ current_user.full_name or 'User' }}</p>
+        </div>
+        <a href="{{ url_for('user_scores') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-bar-chart-line me-2"></i>View All Scores
+        </a>
+    </div>
+
+    <!-- Search and Title Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h2 class="mb-0 h3">Available Subjects</h2>
+        <form method="GET" action="{{ url_for('user_dashboard') }}" class="w-100" style="max-width: 400px;">
+            <div class="input-group shadow-sm">
+                <input type="text" class="form-control" name="search_query" 
+                       placeholder="Search subjects..." value="{{ search_query|default('') }}">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if search_query %}
+                <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-danger">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Subjects Grid -->
+    {% if subjects and subjects|length > 0 %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        {% for subject in subjects %}
+        <div class="col">
+            <div class="card h-100 shadow-sm hover-shadow-lg transition-all">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="h5 mb-0">{{ subject[1] }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">{{ subject[2] }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="badge bg-info rounded-pill">
+                            <i class="bi bi-journal-check me-1"></i>{{ subject[3] }} Quiz{{ 'zes' if subject[3] != 1 else '' }}
+                        </span>
+                        <a href="{{ url_for('user_subject', subject_id=subject[0]) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View Chapters <i class="bi bi-arrow-right-short"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="alert alert-info d-inline-flex align-items-center">
+            <i class="bi bi-info-circle me-3 fs-4"></i>
+            <div class="text-start">
+                <p class="mb-0">No subjects with quizzes available{% if search_query %} matching "{{ search_query }}"{% endif %}.</p>
+                <p class="mb-0 small">Check back later or try a different search term.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

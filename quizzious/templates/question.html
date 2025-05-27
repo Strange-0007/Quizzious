@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Add New Question</h2>
+        <a href="{{ url_for('question') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Questions
+        </a>
+    </div>
+
+    <!-- Search Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('question') }}" class="row g-3">
+                <input type="hidden" name="search" value="true">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="search_query" 
+                           placeholder="Search quizzes..." value="{{ search_query|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="subject_filter" 
+                           placeholder="Subject" value="{{ subject_filter|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="chapter_filter" 
+                           placeholder="Chapter" value="{{ chapter_filter|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="quiz_filter" 
+                           placeholder="Quiz" value="{{ quiz_filter|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                        {% if search_query or subject_filter or chapter_filter or quiz_filter %}
+                        <a href="{{ url_for('question') }}" class="btn btn-outline-danger">
+                            Clear
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quiz List -->
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for quiz in quizzes %}
+        <div class="col">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">{{ quiz[3] }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-info">{{ quiz[0] }}</span>
+                            <span class="badge bg-secondary">{{ quiz[1] }}</span>
+                        </div>
+                    </div>
+                    <form method="GET" action="/admin/question_add">
+                        <input type="hidden" name="quiz_id" value="{{ quiz[2] }}">
+                        <input type="hidden" name="quiz_subject" value="{{ quiz[0] }}">
+                        <input type="hidden" name="quiz_chapter" value="{{ quiz[1] }}">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Add Questions
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

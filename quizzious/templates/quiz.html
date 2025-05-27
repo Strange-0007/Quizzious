@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Create Quiz{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Quiz Management</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+
+
+    <!-- Search Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_quiz') }}" class="row g-3">
+                <input type="hidden" name="search" value="true">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="search_query" 
+                           placeholder="Search quizzes..." value="{{ search_query|default('') }}">
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                        {% if search_query %}
+                        <a href="{{ url_for('create_quiz') }}" class="btn btn-outline-danger">
+                            Clear
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Create Quiz Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Create New Quiz</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/quiz" method="POST">
+                        <input type="hidden" name="quiz_add" value="quiz_add">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="subject_name" class="form-label">Subject</label>
+                                <select class="form-select" id="subject_name" name="subject_name" required>
+                                    <option value="" disabled selected>Select a subject</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="chapter_name" class="form-label">Chapter</label>
+                                <select class="form-select" id="chapter_name" name="chapter_name" required>
+                                    <option value="" disabled selected>Select a chapter</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="quiz_name" class="form-label">Quiz Name</label>
+                                <input type="text" class="form-control" id="quiz_name" name="quiz_name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="date_of_quiz" class="form-label">Quiz Date</label>
+                                <input type="date" class="form-control" id="date_of_quiz" name="date_of_quiz" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Duration</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="time_duration_hours" 
+                                                   name="time_duration_hours" min="0" required>
+                                            <span class="input-group-text">hrs</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="time_duration_minutes" 
+                                                   name="time_duration_minutes" min="0" max="59" required>
+                                            <span class="input-group-text">mins</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <textarea class="form-control" id="remarks" name="remarks" rows="3" 
+                                          style="resize: vertical;"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Quiz
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Quizzes -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Existing Quizzes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Quiz Name</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quiz in quizzes %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="fw-semibold">{{ quiz[1] }}</td>
+                                    <td>{{ quiz[3] }}</td>
+                                    <td>{{ quiz[4] // 60 }}h {{ quiz[4] % 60 }}m</td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="/admin/edit-quiz/{{ quiz[0] }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteQuizModal{{ quiz[0] }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteQuizModal{{ quiz[0] }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete "{{ quiz[1] }}"?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="/admin/delete-quiz/{{ quiz[0] }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fetch subjects and chapters (keep your existing JavaScript)
+fetch('/fetch_subjects')
+    .then(response => response.json())
+    .then(data => {
+        const subjectSelect = document.getElementById('subject_name');
+        data.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject[0];
+            option.textContent = subject[1];
+            subjectSelect.appendChild(option);
+        });
+    });
+
+document.getElementById('subject_name').addEventListener('change', function() {
+    const subjectId = this.value;
+    const chapterSelect = document.getElementById('chapter_name');
+    chapterSelect.innerHTML = '<option value="" disabled selected>Select a chapter</option>';
+
+    if (subjectId) {
+        fetch(`/fetch_chapters/${subjectId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(chapter => {
+                    const option = document.createElement('option');
+                    option.value = chapter[0];
+                    option.textContent = chapter[1];
+                    chapterSelect.appendChild(option);
+                });
+            });
+    }
+});
+</script>
+{% endblock %}

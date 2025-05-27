@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h4 mb-0">Edit Question</h2>
+                        <a href="/admin/question" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Questions
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="alert alert-{{ messages[0][0] }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            {{ messages[0][1] }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/admin/edit-question/{{ question[0] }}" class="needs-validation" novalidate>
+                        <input type="hidden" name="quiz_id" value="{{ quiz_id }}">
+                        
+                        <div class="mb-4">
+                            <label for="question_statement" class="form-label">Question Statement</label>
+                            <textarea class="form-control" id="question_statement" name="question_statement" 
+                                      rows="3" required style="resize: vertical;">{{ question[2] }}</textarea>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            {% for option in range(1,5) %}
+                            <div class="col-md-6">
+                                <label for="option{{ option }}" class="form-label">Option {{ option }}</label>
+                                <input type="text" class="form-control" id="option{{ option }}" 
+                                       name="option{{ option }}" value="{{ question[option+2] }}" 
+                                       {{ 'required' if option <= 2 else '' }}>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="correct_option" class="form-label">Correct Answer</label>
+                            <select class="form-select" id="correct_option" name="correct_option" required>
+                                {% for option in range(1,5) %}
+                                <option value="{{ option }}" {% if question[7] == option %}selected{% endif %}>
+                                    Option {{ option }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Update Question
+                            </button>
+                            <a href="/admin/question" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

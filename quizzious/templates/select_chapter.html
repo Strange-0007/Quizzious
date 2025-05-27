@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Select Chapter - QuizMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h2 class="text-primary mb-0">Available Chapters</h2>
+        <a href="/admin/chapter" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Chapters
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                <i class="bi {% if category == 'success' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for chapter in chapters %}
+        <div class="col">
+            <div class="card h-100 shadow-sm hover-shadow transition-all">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-bookmark me-2"></i>{{ chapter[1] }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">{{ chapter[2]|truncate(120) }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <span class="badge bg-info">
+                            <i class="bi bi-question-circle me-1"></i>{{ chapter[3] }} Questions
+                        </span>
+                        <a href="/quiz/quiz/{{ chapter[0] }}" class="btn btn-primary">
+                            Select <i class="bi bi-arrow-right-short"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not chapters %}
+    <div class="text-center py-5">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No chapters available yet
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

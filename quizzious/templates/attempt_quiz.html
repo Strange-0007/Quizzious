@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}{% if completed %}Quiz Results{% else %}Attempt Quiz{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                        <div class="mb-2 mb-md-0">
+                            <h1 class="h3 mb-1">{{ quiz_name }}</h1>
+                            <div class="d-flex gap-3">
+                                <span class="badge bg-info">{{ subject_name }}</span>
+                                <span class="badge bg-secondary">{{ chapter_name }}</span>
+                            </div>
+                        </div>
+                        {% if not completed and allow_attempt %}
+                        <div class="d-flex align-items-center bg-dark bg-opacity-50 px-3 py-2 rounded">
+                            <i class="bi bi-clock-history me-2"></i>
+                            <span id="timer" class="fw-semibold">Loading...</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="alert alert-{{ messages[0][0] }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            {{ messages[0][1] }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% if completed %}
+                    <div class="text-center py-4">
+                        <h2 class="mb-4">Quiz Results</h2>
+                        <div class="mx-auto" style="max-width: 300px;">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-4">
+                                    <div class="position-relative">
+                                        <div class="progress-circle" 
+                                            data-percent="{{ (score / total_questions * 100)|round(0)|int }}"
+                                            data-color="{% if (score / total_questions * 100) >= 70 %}success{% elif (score / total_questions * 100) >= 40 %}warning{% else %}danger{% endif %}">
+                                        </div>
+                                        <div class="position-absolute top-50 start-50 translate-middle">
+                                            <span class="h2 fw-bold">{{ (score / total_questions * 100)|round(0)|int }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <p class="lead mb-1">Score: {{ score }}/{{ total_questions }}</p>
+                                        <div class="text-muted small">Correct answers: {{ score }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                        {% if not allow_attempt %}
+                        <div class="alert alert-warning">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle me-3 fs-4"></i>
+                                <div>
+                                    <p class="mb-2">You've already attempted this quiz. To reattempt, please visit the chapters page.</p>
+                                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-arrow-left me-2"></i>Return to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <form id="quizForm" method="POST" action="{{ url_for('attempt_quiz', quiz_id=quiz_id) }}" class="mt-4">
+                        <!-- Add this hidden input field -->
+                        <input type="hidden" name="from_dashboard" value="{{ 'true' if allow_attempt else 'false' }}">
+                        
+                        <!-- Add this div inside the form, before the questions -->
+                        <div id="questionContainer">
+                            <!-- Question navigator will be inserted here by JavaScript -->
+                        </div>
+
+                        <!-- Question Progress Bar -->
+                        {% if not completed and allow_attempt %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Question <span id="currentQuestionNum">1</span> of {{ questions|length }}</span>
+                                <span id="questionProgress">1/{{ questions|length }}</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: {{ 100 / questions|length }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Questions Container -->
+                        <div id="questionsContainer">
+                            {% for question in questions %}
+                            <div class="question-item" id="question-{{ loop.index0 }}" style="{% if loop.index0 > 0 %}display: none;{% endif %}">
+                                <div class="card mb-3 border-start-4 border-primary">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-4">Question {{ loop.index }}</h5>
+                                        <p class="fw-semibold mb-3">{{ question[1] }}</p>
+                                        
+                                        <div class="list-group">
+                                            {% for i in range(1, 5) %}
+                                                {% if question[i+1] %}
+                                                <label class="list-group-item d-flex gap-3 
+                                                    {% if completed %} 
+                                                        {% if question[6] == i %}bg-success bg-opacity-10 border-success
+                                                        {% elif user_answers and question[0] in user_answers and user_answers[question[0]] == i %}bg-danger bg-opacity-10 border-danger
+                                                        {% endif %}
+                                                    {% endif %}">
+                                                    <input class="form-check-input flex-shrink-0 mt-1" 
+                                                        type="radio" 
+                                                        name="question_{{ question[0] }}" 
+                                                        value="{{ i }}"
+                                                        {% if completed or not allow_attempt %}disabled{% endif %}
+                                                        {% if user_answers and question[0] in user_answers and user_answers[question[0]] == i %}checked{% endif %}>
+                                                    <span class="w-100">
+                                                        {{ question[i+1] }}
+                                                        {% if completed and question[6] == i %}
+                                                        <span class="badge bg-success ms-2">Correct Answer</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </label>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <input type="hidden" name="total_questions" value="{{ questions|length }}">
+                        
+                        <!-- Navigation Buttons for Questions -->
+                        {% if not completed and allow_attempt %}
+                        <div class="d-flex justify-content-between gap-3 mt-4" id="navigationButtons">
+                            <button type="button" id="prevButton" class="btn btn-outline-secondary" disabled>
+                                <i class="bi bi-arrow-left me-2"></i>Previous
+                            </button>
+                            
+                            <div>
+                                <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-danger me-2">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel Quiz
+                                </a>
+                                <button type="button" id="nextButton" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Save & Next
+                                </button>
+                                <button type="button" id="submitButton" class="btn btn-success" style="display: none;">
+                                    <i class="bi bi-send-check me-2"></i>Submit Quiz
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if completed %}
+                        <div class="d-flex justify-content-between gap-3 mt-5">
+                            <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Dashboard
+                            </a>
+                            <a href="{{ url_for('attempt_quiz', quiz_id=quiz_id, from_dashboard='true') }}" class="btn btn-primary">
+                                <i class="bi bi-arrow-repeat me-2"></i>Retry Quiz
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this to your quiz-data element in attempt_quiz.html -->
+<div id="quiz-data" data-duration="{{ total_duration }}" data-question-count="{{ questions|length }}" data-quiz-id="{{ quiz_id }}">
+    <!-- rest of the element -->
+</div>
+
+{% if not completed and allow_attempt %}
+<script src="{{ url_for('static', filename='js/attempt_quiz.js') }}"></script>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quiz.css') }}">
+{% endblock %}
